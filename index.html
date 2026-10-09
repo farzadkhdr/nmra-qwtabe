@@ -113,11 +113,12 @@
     async function updateDB() {
         showLoading(true);
         try {
-            await fetch(BASE_URL, {
+            let res = await fetch(BASE_URL, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
                 body: JSON.stringify(dbData)
             });
+            if (!res.ok) throw new Error('Update failed');
         } catch (e) { alert('کێشەی پاشەکەوتکردن!'); }
         showLoading(false);
     }
@@ -144,6 +145,8 @@
     async function studentLogin() {
         let u = document.getElementById('usernameInput').value.trim();
         let p = document.getElementById('passwordInput').value.trim();
+        
+        // سەرەتا داتای نوێ لە سێرڤەرەوە دێنین تاوەکو قوتابیە نوێیەکان بناسێت
         await fetchDB();
 
         let found = dbData.students.find(s => s.username === u && s.password === p);
@@ -153,7 +156,7 @@
             showStudentDashboard();
         } else {
             let alertBox = document.getElementById('loginAlert');
-            alertBox.innerText = 'یوزەرنەم یان پاسوۆرد هەڵەیە!';
+            alertBox.innerText = 'یوزەرنەم یان پاسوۆرد هەڵەیە یاخود هێشتا نەبەستراوە بە سێرڤەرەوە!';
             alertBox.classList.remove('hidden');
         }
     }
@@ -174,6 +177,7 @@
             return;
         }
 
+        // هێنانی دوایین داتا بۆ دڵنیابوون لەوەی یوزەرنەم دووبارە نەبێتەوە
         await fetchDB();
         if (dbData.students.some(s => s.username === username) || username === 'muder') {
             let alertBox = document.getElementById('regAlert');
@@ -183,13 +187,19 @@
         }
 
         dbData.students.push({ name, fatherName, phone, stage, className, username, password });
+        
+        // پاشەکەوتکردنی ڕاستەوخۆ لە سێرڤەردا
         await updateDB();
 
         let alertBox = document.getElementById('regAlert');
         alertBox.innerText = 'خۆتۆمارکردن سەرکەوتوو بوو!';
         alertBox.className = 'alert success';
         alertBox.classList.remove('hidden');
-        setTimeout(() => showLogin(), 1500);
+        
+        setTimeout(() => {
+            showLogin();
+            document.getElementById('usernameInput').value = username; // خۆکارانە یوزەرنەمەکە دەگوازێتەوە بۆ پەڕەی لۆگین
+        }, 1500);
     }
 
     async function showStudentDashboard() {
