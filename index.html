@@ -104,6 +104,8 @@
             let res = await fetch(BASE_URL, { headers: { 'X-Master-Key': API_KEY } });
             let json = await res.json();
             dbData = json.record || { students: [], grades: [] };
+            if (!dbData.students) dbData.students = [];
+            if (!dbData.grades) dbData.grades = [];
         } catch (e) { alert('کێشەی سێرڤەر!'); }
         showLoading(false);
     }
