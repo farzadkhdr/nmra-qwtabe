@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پەڕەی قوتابی - نمرەکان</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --border-color: #d1d5db;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h1, h3 { color: var(--primary); margin-bottom: 15px; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; }
+        input, select { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; outline: none; }
+        button { background-color: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; font-weight: bold; }
+        button:hover { background-color: var(--primary-dark); }
+        .btn-secondary { background-color: #6b7280; margin-top: 10px; }
+        .btn-danger { background-color: #ef4444; padding: 6px 12px; font-size: 14px; width: auto; }
+        .hidden { display: none !important; }
+        .alert { padding: 10px; background-color: #fee2e2; color: #b91c1c; border-radius: 8px; margin-bottom: 15px; text-align: center; }
+        .success { background-color: #d1fae5; color: #065f46; }
+        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); display: flex; justify-content: center; align-items: center; z-index: 999; font-size: 18px; font-weight: bold; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div id="loadingOverlay" class="hidden">چاوەڕوانبە...</div>
+
+<div class="container">
+    <!-- چوونەژوورەوەی قوتابی -->
+    <div id="loginSection" class="card">
+        <h1>چوونەژوورەوەی قوتابی</h1>
+        <div id="loginAlert" class="alert hidden"></div>
+        <div class="form-group">
+            <label>ناوی بەکارهێنەر (Username):</label>
+            <input type="text" id="usernameInput" placeholder="یوزەرنەم بنووسە">
+        </div>
+        <div class="form-group">
+            <label>پاسوۆرد:</label>
+            <input type="password" id="passwordInput" placeholder="پاسوۆرد بنووسە">
+        </div>
+        <button onclick="studentLogin()">چوونە ژوورەوە</button>
+        <button class="btn-secondary" onclick="showRegister()">خۆتۆمارکردنی قوتابی نوێ</button>
+    </div>
+
+    <!-- خۆتۆمارکردن -->
+    <div id="registerSection" class="card hidden">
+        <h1>خۆتۆمارکردنی قوتابی نوێ</h1>
+        <div id="regAlert" class="alert hidden"></div>
+        <div class="form-group"><label>ناوی قوتابی:</label><input type="text" id="regName"></div>
+        <div class="form-group"><label>ناوی باوک:</label><input type="text" id="regFatherName"></div>
+        <div class="form-group"><label>ژمارە مۆبایل:</label><input type="text" id="regPhone"></div>
+        <div class="form-group">
+            <label>قۆناغ:</label>
+            <select id="regStage">
+                <option value="قۆناغی 1">قۆناغی 1</option>
+                <option value="قۆناغی 2">قۆناغی 2</option>
+                <option value="قۆناغی 3">قۆناغی 3</option>
+                <option value="قۆناغی 4">قۆناغی 4</option>
+                <option value="قۆناغی 5">قۆناغی 5</option>
+            </select>
+        </div>
+        <div class="form-group"><label>کلاس:</label><input type="text" id="regClass" placeholder="بۆ نموونە: A"></div>
+        <div class="form-group"><label>ناوی بەکارهێنەر:</label><input type="text" id="regUsername"></div>
+        <div class="form-group"><label>پاسوۆرد:</label><input type="password" id="regPassword"></div>
+        <button onclick="registerStudent()">تۆمارکردن</button>
+        <button class="btn-secondary" onclick="showLogin()">گەڕانەوە بۆ چوونەژوورەوە</button>
+    </div>
+
+    <!-- داشبۆردی قوتابی و نمرەکان -->
+    <div id="studentDashboard" class="card hidden">
+        <h1>ئەنجامی قوتابی</h1>
+        <div style="text-align: left; margin-bottom: 15px;">
+            <button class="btn-danger" onclick="logout()">چوونەدەرەوە</button>
+        </div>
+        <div id="studentInfoBox" style="background: #eef2ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;"></div>
+        <h3>نمرە و ئەنجامەکان:</h3>
+        <div id="studentGradesContainer"></div>
+    </div>
+</div>
+
+<script>
+    const BIN_ID = '6ac8b0f699f2e6510825b27d';
+    const API_KEY = '$2a$10$lFwaTUI.NEhF5OAB72t00.HD73fJHtk8FiK0EqrgAa3dQa5oQ81Fm';
+    const BASE_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+    let dbData = { students: [], grades: [] };
+    let currentStudent = JSON.parse(localStorage.getItem('current_student')) || null;
+
+    function showLoading(show) { document.getElementById('loadingOverlay').classList.toggle('hidden', !show); }
+
+    async function fetchDB() {
+        showLoading(true);
+        try {
+            let res = await fetch(BASE_URL, { headers: { 'X-Master-Key': API_KEY } });
+            let json = await res.json();
+            dbData = json.record || { students: [], grades: [] };
+        } catch (e) { alert('کێشەی سێرڤەر!'); }
+        showLoading(false);
+    }
+
+    async function updateDB() {
+        showLoading(true);
+        try {
+            await fetch(BASE_URL, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+                body: JSON.stringify(dbData)
+            });
+        } catch (e) { alert('کێشەی پاشەکەوتکردن!'); }
+        showLoading(false);
+    }
+
+    window.onload = async function() {
+        await fetchDB();
+        if (currentStudent) {
+            let found = dbData.students.find(s => s.username === currentStudent.username);
+            if (found) { currentStudent = found; showStudentDashboard(); }
+            else { logout(); }
+        }
+    }
+
+    function showRegister() {
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('registerSection').classList.remove('hidden');
+    }
+
+    function showLogin() {
+        document.getElementById('registerSection').classList.add('hidden');
+        document.getElementById('loginSection').classList.remove('hidden');
+    }
+
+    async function studentLogin() {
+        let u = document.getElementById('usernameInput').value.trim();
+        let p = document.getElementById('passwordInput').value.trim();
+        await fetchDB();
+
+        let found = dbData.students.find(s => s.username === u && s.password === p);
+        if (found) {
+            currentStudent = found;
+            localStorage.setItem('current_student', JSON.stringify(currentStudent));
+            showStudentDashboard();
+        } else {
+            let alertBox = document.getElementById('loginAlert');
+            alertBox.innerText = 'یوزەرنەم یان پاسوۆرد هەڵەیە!';
+            alertBox.classList.remove('hidden');
+        }
+    }
+
+    async function registerStudent() {
+        let name = document.getElementById('regName').value.trim();
+        let fatherName = document.getElementById('regFatherName').value.trim();
+        let phone = document.getElementById('regPhone').value.trim();
+        let stage = document.getElementById('regStage').value;
+        let className = document.getElementById('regClass').value.trim();
+        let username = document.getElementById('regUsername').value.trim();
+        let password = document.getElementById('regPassword').value.trim();
+
+        if (!name || !fatherName || !phone || !className || !username || !password) {
+            let alertBox = document.getElementById('regAlert');
+            alertBox.innerText = 'هەموو خانەکان پڕبکەرەوە!';
+            alertBox.classList.remove('hidden');
+            return;
+        }
+
+        await fetchDB();
+        if (dbData.students.some(s => s.username === username) || username === 'muder') {
+            let alertBox = document.getElementById('regAlert');
+            alertBox.innerText = 'ئەم یوزەرنەمە پێشتر هەیە!';
+            alertBox.classList.remove('hidden');
+            return;
+        }
+
+        dbData.students.push({ name, fatherName, phone, stage, className, username, password });
+        await updateDB();
+
+        let alertBox = document.getElementById('regAlert');
+        alertBox.innerText = 'خۆتۆمارکردن سەرکەوتوو بوو!';
+        alertBox.className = 'alert success';
+        alertBox.classList.remove('hidden');
+        setTimeout(() => showLogin(), 1500);
+    }
+
+    async function showStudentDashboard() {
+        await fetchDB();
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('registerSection').classList.add('hidden');
+        document.getElementById('studentDashboard').classList.remove('hidden');
+
+        document.getElementById('studentInfoBox').innerHTML = `
+            <strong>ناوی قوتابی:</strong> ${currentStudent.name} ${currentStudent.fatherName}<br>
+            <strong>قۆناغ:</strong> ${currentStudent.stage} | <strong>کلاس:</strong> ${currentStudent.className}<br>
+            <strong>ژمارە مۆبایل:</strong> ${currentStudent.phone}
+        `;
+
+        let myGrades = dbData.grades.filter(g => g.studentUser === currentStudent.username);
+        let container = document.getElementById('studentGradesContainer');
+
+        if (myGrades.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">هێشتا هیچ نمرەیەک بۆت نەنیراوە.</p>';
+        } else {
+            let html = '';
+            myGrades.forEach(g => {
+                html += `
+                    <div style="background: #f8fafc; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                        <h4 style="color: var(--primary);">${g.subject}</h4>
+                        <p style="white-space: pre-line; margin-top: 5px;">${g.details}</p>
+                        <small style="color: #9ca3af; display: block; margin-top: 5px;">بەروار: ${g.date}</small>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('current_student');
+        location.reload();
+    }
+</script>
+</body>
+</html>
